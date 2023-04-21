@@ -8,6 +8,7 @@ import subprocess
 import sys
 import os
 import bpy
+from .sti_maker_sti import STI
 
 
 class STIMaker:
@@ -16,27 +17,20 @@ class STIMaker:
     _render_recall_interval = 0.25  # sek
 
     @classmethod
-    def _render_to_sti_static(cls, context):
-        # render static image to .sti
-        pass
-
-    @classmethod
-    def _render_to_sti_animation(cls, context):
-        # render animation to .sti
-        # TODO
-        pass
-
-    @classmethod
     def render_to_sti(cls, context, mode='IMAGE'):
         # render to .sti
-        cls._mode = mode
-        cls._add_handlers()
-        # start render
-        if not bpy.app.timers.is_registered(cls._render):
-            bpy.app.timers.register(
-                cls._render,
-                first_interval=cls._render_recall_interval
-            )
+        sti = STI(mode='8BIT_INDEXED')
+        sti.save_image(path='d:/', file_name='1')
+
+
+        # cls._mode = mode
+        # cls._add_handlers()
+        # # start render
+        # if not bpy.app.timers.is_registered(cls._render):
+        #     bpy.app.timers.register(
+        #         cls._render,
+        #         first_interval=cls._render_recall_interval
+        #     )
 
     @classmethod
     def _render(cls):
@@ -81,16 +75,16 @@ class STIMaker:
             bpy.app.handlers.render_cancel.remove(cls._on_render_cancel)
 
     @classmethod
-    def _on_render_post(cls, *args):
-        # render of the current frame is completed
-        context = bpy.context
-        print('on render post')
-
-    @classmethod
     def _on_render_init(cls, *args):
         # whole render starts
         context = bpy.context
         print('on render init')
+
+    @classmethod
+    def _on_render_post(cls, *args):
+        # render of the current frame is completed
+        context = bpy.context
+        print('on render post')
 
     @classmethod
     def _on_render_complete(cls, *args):
@@ -98,6 +92,9 @@ class STIMaker:
         context = bpy.context
         print('on render complete')
         cls._remove_handlers()
+        # write to .sti
+        sti = STI()
+        sti.save_image(path='d:/1.sti')
 
     @classmethod
     def _on_render_cancel(cls, *args):
