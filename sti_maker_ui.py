@@ -16,7 +16,14 @@ class STI_MAKER_PT_panel(Panel):
     bl_category = 'STI Maker'
 
     def draw(self, context):
-        self.layout.operator('sti_maker.main', icon='BLENDER', text='sti_maker execute')
+        self.layout.operator(
+            operator='sti_maker.render_to_sti',
+            icon='RESTRICT_RENDER_OFF'
+        )
+        self.layout.operator(
+            operator='sti_maker.render_to_sti_anim',
+            icon='RENDER_ANIMATION'
+        )
 
 
 def register():

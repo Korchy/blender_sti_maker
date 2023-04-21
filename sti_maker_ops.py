@@ -9,14 +9,14 @@ from bpy.utils import register_class, unregister_class
 from .sti_maker import STIMaker
 
 
-class STI_MAKER_OT_main(Operator):
-    bl_idname = 'sti_maker.main'
-    bl_label = 'sti_maker: main'
-    bl_description = 'sti_maker - main operator'
+class STI_MAKER_OT_render_to_sti(Operator):
+    bl_idname = 'sti_maker.render_to_sti'
+    bl_label = 'Render to STI'
+    bl_description = 'Render static image to STI'
     bl_options = {'REGISTER', 'UNDO'}
 
     def execute(self, context):
-        STIMaker.save_to_sti(
+        STIMaker.render_to_sti(
            context=context
         )
         return {'FINISHED'}
@@ -26,9 +26,42 @@ class STI_MAKER_OT_main(Operator):
         return True
 
 
+class STI_MAKER_OT_render_to_sti_anim(Operator):
+    bl_idname = 'sti_maker.render_to_sti_anim'
+    bl_label = 'Render animation to STI'
+    bl_description = 'Render animation to STI'
+    bl_options = {'REGISTER', 'UNDO'}
+
+    def execute(self, context):
+        STIMaker.render_to_sti(
+           context=context,
+            mode='ANIMATION'
+        )
+        return {'FINISHED'}
+
+    @classmethod
+    def poll(cls, context):
+        return True
+
+
+class STI_MAKER_OT_install_pillow(Operator):
+    bl_idname = 'sti_maker.install_pillow'
+    bl_label = 'Install Pillow (PIL)'
+    bl_description = 'Install Pillow (PIL) package to Blender'
+    bl_options = {'REGISTER', 'UNDO'}
+
+    def execute(self, context):
+        STIMaker.install_pillow()
+        return {'FINISHED'}
+
+
 def register():
-    register_class(STI_MAKER_OT_main)
+    register_class(STI_MAKER_OT_install_pillow)
+    register_class(STI_MAKER_OT_render_to_sti)
+    register_class(STI_MAKER_OT_render_to_sti_anim)
 
 
 def unregister():
-    unregister_class(STI_MAKER_OT_main)
+    unregister_class(STI_MAKER_OT_render_to_sti_anim)
+    unregister_class(STI_MAKER_OT_render_to_sti)
+    unregister_class(STI_MAKER_OT_install_pillow)
