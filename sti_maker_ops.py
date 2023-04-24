@@ -44,6 +44,19 @@ class STI_MAKER_OT_render_to_sti_anim(Operator):
         return True
 
 
+class STI_MAKER_OT_viewer_node_to_sti(Operator):
+    bl_idname = 'sti_maker.viewer_node_to_sti'
+    bl_label = 'Viewer Node to STI'
+    bl_description = 'Save from Viewer Node to STI'
+    bl_options = {'REGISTER', 'UNDO'}
+
+    def execute(self, context):
+        STIMaker.viewer_node_to_sti(
+           context=context
+        )
+        return {'FINISHED'}
+
+
 class STI_MAKER_OT_install_pillow(Operator):
     bl_idname = 'sti_maker.install_pillow'
     bl_label = 'Install Pillow (PIL)'
@@ -59,9 +72,11 @@ def register():
     register_class(STI_MAKER_OT_install_pillow)
     register_class(STI_MAKER_OT_render_to_sti)
     register_class(STI_MAKER_OT_render_to_sti_anim)
+    register_class(STI_MAKER_OT_viewer_node_to_sti)
 
 
 def unregister():
+    unregister_class(STI_MAKER_OT_viewer_node_to_sti)
     unregister_class(STI_MAKER_OT_render_to_sti_anim)
     unregister_class(STI_MAKER_OT_render_to_sti)
     unregister_class(STI_MAKER_OT_install_pillow)

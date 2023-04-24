@@ -7,7 +7,7 @@
 from . import sti_maker_ops
 from . import sti_maker_ui
 from . import sti_maker_preferences
-from .addon import Addon
+from . import sti_maker_props
 
 
 bl_info = {
@@ -24,21 +24,17 @@ bl_info = {
 
 
 def register():
-    if not Addon.dev_mode():
-        sti_maker_preferences.register()
-        sti_maker_ops.register()
-        sti_maker_ui.register()
-    else:
-        print('It seems you are trying to use the dev version of the '
-              + bl_info['name']
-              + ' add-on. It may work not properly. Please download and use the release version')
+    sti_maker_props.register()
+    sti_maker_preferences.register()
+    sti_maker_ops.register()
+    sti_maker_ui.register()
 
 
 def unregister():
-    if not Addon.dev_mode():
-        sti_maker_ui.unregister()
-        sti_maker_ops.unregister()
-        sti_maker_preferences.unregister()
+    sti_maker_ui.unregister()
+    sti_maker_ops.unregister()
+    sti_maker_preferences.unregister()
+    sti_maker_props.unregister()
 
 
 if __name__ == '__main__':

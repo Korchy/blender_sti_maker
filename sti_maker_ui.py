@@ -16,13 +16,25 @@ class STI_MAKER_PT_panel(Panel):
     bl_category = 'STI Maker'
 
     def draw(self, context):
-        self.layout.operator(
+        layout = self.layout
+        layout.operator(
             operator='sti_maker.render_to_sti',
             icon='RESTRICT_RENDER_OFF'
         )
-        self.layout.operator(
+        layout.operator(
             operator='sti_maker.render_to_sti_anim',
             icon='RENDER_ANIMATION'
+        )
+        layout.prop(
+            data=context.scene.sti_maker_props,
+            property='format',
+            expand=True
+        )
+        box = layout.box()
+        box.label(text='TEST')
+        box.operator(
+            operator='sti_maker.viewer_node_to_sti',
+            icon='RESTRICT_RENDER_ON'
         )
 
 
