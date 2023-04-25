@@ -4,7 +4,7 @@
 # GitHub
 #    https://github.com/Korchy/blender_sti_maker
 
-from ctypes import c_char, c_ubyte, c_uint8, c_uint16, c_uint32, Structure
+from ctypes import c_char, c_int16, c_ubyte, c_uint8, c_uint16, c_uint32, Structure
 
 
 class STIHeader8bI(Structure):
@@ -32,8 +32,7 @@ class STIHeader8bI(Structure):
         ('cUnused', c_ubyte * 12),          # unused - 12 bytes
     )
 
-    def __init__(self, animated: bool = False, frames: int = 0, byte_size: int = 0,
-                 width: int = 0, height: int = 0):
+    def __init__(self,byte_size: int,  animated: bool = False, frames: int = 1):
         super().__init__()
 
         self.cID = b'STCI'                      # always 'STCI'
@@ -41,8 +40,8 @@ class STIHeader8bI(Structure):
         self.uiStoredSize = byte_size
         self.uiTransparentValue = 0             # always 0
         self.fFlags = 41 if animated else 40    # always 40 (static) or 41 (animated)
-        self.usHeight = height
-        self.usWidth = width
+        self.usHeight = 0                       # always 0
+        self.usWidth = 0                        # always 0
         self.uiNumberOfColours = 256            # always 256
         self.usNumberOfSubImages = frames
         self.ubRedDepth = 8                     # always 8
@@ -53,6 +52,47 @@ class STIHeader8bI(Structure):
         self.cOffsetUnused = (c_ubyte * 3)(*list(bytearray(0 * 3)))     # always 0
         self.uiAppDataSize = (frames * 16 if animated else 0)
         self.cUnused = (c_ubyte * 12)(*list(bytearray(0 * 12)))         # always 0
+
+
+class STI8bIPalette(Structure):
+    """
+        8 bit indexed image palette
+    """
+
+    _fields_ = (
+        ('palette', c_uint8 * (3 * 256)),      # (r, g, b) * 256 = 768 bytes
+    )
+
+    def __init__(self, data: [list, tuple]):
+        super().__init__()
+
+        self.palette = (c_uint8 * (3 * 256))(*data)   # r, g, b, ...
+
+
+class STI8bISubImage(Structure):
+    """
+        8 bit indexed image SubImage header
+    """
+
+    _fields_ = (
+        ('uiDataOffset', c_uint32),         # offset of this frame data in image data block
+        ('uiDataLength', c_uint32),         # frame size in bytes
+        ('sOffsetX', c_int16),              # frame offset by X in pix
+        ('sOffsetY', c_int16),              # frame offset by Y in pix
+        ('usHeight', c_uint16),             # frame height in pix
+        ('usWidth', c_uint16),              # frame width in pix
+    )
+
+    def __init__(self, width: int, height: int, frame_data_offset: int,
+                 frame_size: int, frame_offset_x: int = 0, frame_offset_y: int = 0):
+        super().__init__()
+
+        self.uiDataOffset = frame_data_offset   # 0 for the first image, size of all prev images - for each next image
+        self.uiDataLength = frame_size
+        self.sOffsetX = frame_offset_x
+        self.sOffsetY = frame_offset_y
+        self.usHeight = height
+        self.usWidth = width
 
 
 class STIHeader16bRGB(Structure):
