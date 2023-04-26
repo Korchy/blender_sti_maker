@@ -43,10 +43,8 @@ class STI8BI:
 
     _header = None
     _palette = None
-    _frame_headers = None
-    _frame_indices_compressed = None
-    # _body = None
-    # _body_compressed = None
+    _frame_headers = []
+    _frame_indices_compressed = []
 
     def __init__(self, indices: [list, tuple], palette: [list, tuple],
                  frames: [list, tuple]):
@@ -59,11 +57,6 @@ class STI8BI:
                 height = 0
             }
         """
-        # main header
-        self._header = STIHeader8bI(
-            byte_size=len(indices),
-            frames=len(frames)
-        )
         # palette
         self._palette = STI8bIPalette(
             data=palette
@@ -71,27 +64,36 @@ class STI8BI:
         # frame headers
         self._frame_headers = []
         self._frame_indices_compressed = []
+        compressed_bytes_size = 0
         frame_data_offset = 0
-        for i, frame in enumerate(frames):
-            # frame header
+        for frame in frames:
+            # frame indices (body) compressed
+            frame_indices_compressed = ETRLE.compress(
+                indices=frame['indices'],
+                width=frame['width'],
+                height=frame['height']
+            )
+            # frame header - write information about compressed indices and use it later
             self._frame_headers.append(
                 STI8bISubImage(
                     width=frame['width'],
                     height=frame['height'],
                     frame_data_offset=frame_data_offset,
-                    frame_size=frame['data_length']
+                    frame_size=len(frame_indices_compressed)
                 )
             )
-            # frame body
-            self._frame_indices_compressed.append(
-                ETRLE.compress(
-                    indices=indices[frame_data_offset:frame['data_length']],
-                    width=frame['width'],
-                    height=frame['height']
-                )
-            )
+            # full size of compressed indices
+            compressed_bytes_size += len(frame_indices_compressed)
+            # add frame information
+            self._frame_indices_compressed.append(frame_indices_compressed)
             # offset to next frame
-            frame_data_offset += frame['data_length']
+            frame_data_offset += len(frame_indices_compressed)
+        # main header - last, because it needs information about compressed indices (body)
+        self._header = STIHeader8bI(
+            byte_size=len(indices),
+            compressed_byte_size=compressed_bytes_size,
+            frames=len(frames)
+        )
 
     def save_image(self, path: str, file_name: str):
         # save image

@@ -5,7 +5,7 @@
 #    https://github.com/Korchy/blender_sti_maker
 #
 #   Source by Jagged Alliance 2 Stracciatella Team
-#       https://github.com/ja2-stracciatella
+#       https://github.com/ja2-stracciatella/ja2-open-toolset
 
 import io
 import struct

@@ -9,15 +9,15 @@ from bpy.utils import register_class, unregister_class
 from .sti_maker import STIMaker
 
 
-class STI_MAKER_OT_render_to_sti(Operator):
-    bl_idname = 'sti_maker.render_to_sti'
-    bl_label = 'Render to STI'
-    bl_description = 'Render static image to STI'
+class STI_MAKER_OT_render_to_sti_rgb565(Operator):
+    bl_idname = 'sti_maker.render_to_sti_rgb565'
+    bl_label = 'Render RGB565'
+    bl_description = 'Render static image to STI RGB565'
     bl_options = {'REGISTER', 'UNDO'}
 
     def execute(self, context):
-        STIMaker.render_to_sti(
-           context=context
+        STIMaker.render_to_sti_rgb565(
+            context=context
         )
         return {'FINISHED'}
 
@@ -26,16 +26,15 @@ class STI_MAKER_OT_render_to_sti(Operator):
         return True
 
 
-class STI_MAKER_OT_render_to_sti_anim(Operator):
-    bl_idname = 'sti_maker.render_to_sti_anim'
-    bl_label = 'Render animation to STI'
-    bl_description = 'Render animation to STI'
+class STI_MAKER_OT_render_to_sti_8b_set(Operator):
+    bl_idname = 'sti_maker.render_to_sti_8b_set'
+    bl_label = 'Render 8bit Set'
+    bl_description = 'Render set of images in STI 8bit'
     bl_options = {'REGISTER', 'UNDO'}
 
     def execute(self, context):
-        STIMaker.render_to_sti(
-           context=context,
-            mode='ANIMATION'
+        STIMaker.render_to_sti_8b_set(
+            context=context
         )
         return {'FINISHED'}
 
@@ -70,13 +69,13 @@ class STI_MAKER_OT_install_pillow(Operator):
 
 def register():
     register_class(STI_MAKER_OT_install_pillow)
-    register_class(STI_MAKER_OT_render_to_sti)
-    register_class(STI_MAKER_OT_render_to_sti_anim)
+    register_class(STI_MAKER_OT_render_to_sti_rgb565)
+    register_class(STI_MAKER_OT_render_to_sti_8b_set)
     register_class(STI_MAKER_OT_viewer_node_to_sti)
 
 
 def unregister():
     unregister_class(STI_MAKER_OT_viewer_node_to_sti)
-    unregister_class(STI_MAKER_OT_render_to_sti_anim)
-    unregister_class(STI_MAKER_OT_render_to_sti)
+    unregister_class(STI_MAKER_OT_render_to_sti_8b_set)
+    unregister_class(STI_MAKER_OT_render_to_sti_rgb565)
     unregister_class(STI_MAKER_OT_install_pillow)

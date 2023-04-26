@@ -17,19 +17,23 @@ class STI_MAKER_PT_panel(Panel):
 
     def draw(self, context):
         layout = self.layout
-        layout.operator(
-            operator='sti_maker.render_to_sti',
+        box = layout.box()
+        box.label(text='RGB565')
+        box.operator(
+            operator='sti_maker.render_to_sti_rgb565',
             icon='RESTRICT_RENDER_OFF'
         )
-        layout.operator(
-            operator='sti_maker.render_to_sti_anim',
-            icon='RENDER_ANIMATION'
+        box = layout.box()
+        box.label(text='8 bit Set')
+        box.operator(
+            operator='sti_maker.render_to_sti_8b_set',
+            icon='PACKAGE'
         )
-        layout.prop(
-            data=context.scene.sti_maker_props,
-            property='format',
-            expand=True
-        )
+        # layout.prop(
+        #     data=context.scene.sti_maker_props,
+        #     property='format',
+        #     expand=True
+        # )
         box = layout.box()
         box.label(text='TEST')
         box.operator(

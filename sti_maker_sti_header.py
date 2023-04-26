@@ -32,12 +32,13 @@ class STIHeader8bI(Structure):
         ('cUnused', c_ubyte * 12),          # unused - 12 bytes
     )
 
-    def __init__(self,byte_size: int,  animated: bool = False, frames: int = 1):
+    def __init__(self,byte_size: int, compressed_byte_size: int, animated: bool = False,
+                 frames: int = 1):
         super().__init__()
 
         self.cID = b'STCI'                      # always 'STCI'
         self.uiOriginalSize = byte_size
-        self.uiStoredSize = byte_size
+        self.uiStoredSize = compressed_byte_size
         self.uiTransparentValue = 0             # always 0
         self.fFlags = 41 if animated else 40    # always 40 (static) or 41 (animated)
         self.usHeight = 0                       # always 0
@@ -75,8 +76,8 @@ class STI8bISubImage(Structure):
     """
 
     _fields_ = (
-        ('uiDataOffset', c_uint32),         # offset of this frame data in image data block
-        ('uiDataLength', c_uint32),         # frame size in bytes
+        ('uiDataOffset', c_uint32),         # offset of this frame data in image data block (count for compressed data)
+        ('uiDataLength', c_uint32),         # frame size in bytes (compressed)
         ('sOffsetX', c_int16),              # frame offset by X in pix
         ('sOffsetY', c_int16),              # frame offset by Y in pix
         ('usHeight', c_uint16),             # frame height in pix
@@ -170,8 +171,7 @@ class STIHeader8bIBase(Structure):
         ('cUnused', c_ubyte * 15),          # unused - 15 bytes
     )
 
-    def __init__(self, animated: bool = False, frames: int = 0, byte_size: int = 0,
-                 width: int = 0, height: int = 0):
+    def __init__(self,byte_size: int,  animated: bool = False, frames: int = 1):
         super().__init__()
 
         self.cID = b'STCI'                      # always 'STCI'
@@ -179,8 +179,8 @@ class STIHeader8bIBase(Structure):
         self.uiStoredSize = byte_size
         self.uiTransparentValue = 0             # always 0
         self.fFlags = 41 if animated else 40    # always 40 (static) or 41 (animated)
-        self.usHeight = height
-        self.usWidth = width
+        self.usHeight = 0                       # always 0
+        self.usWidth = 0                        # always 0
         self.uiNumberOfColours = 256            # always 256
         self.usNumberOfSubImages = frames
         self.ubRedDepth = 8                     # always 8
