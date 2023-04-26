@@ -12,8 +12,8 @@ from .sti_maker_etrle import ETRLE
 
 class STI16BRGB565:
 
-    _header = None
-    _body = None
+    _header = None  # main image header
+    _body = None    # image body (RGB color bytes)
 
     def __init__(self, pixels_rgb565: [list, tuple], width: int, height: int):
         """
@@ -41,10 +41,10 @@ class STI16BRGB565:
 
 class STI8BI:
 
-    _header = None
-    _palette = None
-    _frame_headers = []
-    _frame_indices_compressed = []
+    _header = None                  # main image header
+    _palette = None                 # palette - single palette to all frames
+    _frame_headers = []             # header for each frame
+    _frame_indices_compressed = []  # indices to palette (body) of each frame (should be etrle compressed)
 
     def __init__(self, indices: [list, tuple], palette: [list, tuple],
                  frames: [list, tuple]):
@@ -111,20 +111,69 @@ class STI8BI:
 
 class STI8BIA:
 
-    _header = None
+    _header = None                  # main image header
+    _palette = None                 # palette - single palette to all frames
+    _frame_headers = []             # header for each frame
+    _frame_indices_compressed = []  # indices to palette (body) of each frame (should be etrle compressed)
 
-    def __init__(self, frames:int, byte_size: int, width: int, height: int):
-        # init
+    def __init__(self, indices: [list, tuple], palette: [list, tuple],
+                 frames: [list, tuple]):
+        """
+        Create SIT image object
+        :param indices: pixels array
+        :param frames: list of frames structures [[width, height, ], ...]
+            frame {
+                width = 0
+                height = 0
+            }
+        """
+        # palette
+        self._palette = STI8bIPalette(
+            data=palette
+        )
+        # frame headers
+        self._frame_headers = []
+        self._frame_indices_compressed = []
+        compressed_bytes_size = 0
+        frame_data_offset = 0
+        for frame in frames:
+            # frame indices (body) compressed
+            frame_indices_compressed = ETRLE.compress(
+                indices=frame['indices'],
+                width=frame['width'],
+                height=frame['height']
+            )
+            # frame header - write information about compressed indices and use it later
+            self._frame_headers.append(
+                STI8bISubImage(
+                    width=frame['width'],
+                    height=frame['height'],
+                    frame_data_offset=frame_data_offset,
+                    frame_size=len(frame_indices_compressed)
+                )
+            )
+            # full size of compressed indices
+            compressed_bytes_size += len(frame_indices_compressed)
+            # add frame information
+            self._frame_indices_compressed.append(frame_indices_compressed)
+            # offset to next frame
+            frame_data_offset += len(frame_indices_compressed)
+        # main header - last, because it needs information about compressed indices (body)
         self._header = STIHeader8bI(
-            animated=True,
-            frames=frames,
-            byte_size=byte_size,
-            width=width,
-            height=height
+            byte_size=len(indices),
+            compressed_byte_size=compressed_bytes_size,
+            frames=len(frames)
         )
 
     def save_image(self, path: str, file_name: str):
         # save image
         full_path = os.path.join(path, file_name + '.sti')
         with open(full_path, 'wb') as file:
-            file.write(self._header)
+            if self._header:
+                file.write(self._header)
+            if self._palette:
+                file.write(self._palette)
+            for frame_header in self._frame_headers:
+                file.write(frame_header)
+            for frame_indices in self._frame_indices_compressed:
+                file.write(frame_indices)

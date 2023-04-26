@@ -76,19 +76,58 @@ class STIMaker:
             print('STI saved')
 
     @classmethod
+    def render_to_sti_8b_animation(cls, context):
+        # render to .sti 8bit animation
+        STIMakerRender8bSet.start(
+            context=context,
+            on_render_complete_callback=cls._save_to_sti_b8_animation,
+            params = (context,),
+            frames=context.scene.sti_maker_props.frames
+        )
+
+    @classmethod
+    def _save_to_sti_b8_animation(cls, context, frames_data):
+        # save to .sti 8bit w56 colors - animated image
+        #     frames_data = {
+        #         'width': context.scene.render.resolution_x,
+        #         'height': context.scene.render.resolution_y,
+        #         'pixels': pixels,
+        #         'len_rgba': len(pixels),
+        #         'len_bytes': int(len(pixels) / 4)
+        #     }
+
+        # join all frames to single image
+        pixels = [frame['pixels'] for frame in frames_data]
+        pixels_rgba = np.concatenate(np.array(pixels))
+        # convert to RGB256 and get indices (body) and palette
+        indices, palette = cls._pixels_rgba_rgb256(pixels_rgba=pixels_rgba)
+        # split indices to separate frames from single image and add them to frames_data
+        offset = 0
+        for i, frame_data in enumerate(frames_data):
+            frame_data['indices'] = indices[offset:offset + frame_data['len_bytes']]
+            offset += frame_data['len_bytes']
+        # create .sti in 8bit
+        sti = STI8BIA(
+            indices=indices,
+            palette=palette,
+            frames=frames_data
+        )
+        # save to file
+        sti.save_image(path='d:/', file_name='3')
+
+    @classmethod
     def render_to_sti_8b_set(cls, context):
         # render to .sti 8bit set
         STIMakerRender8bSet.start(
             context=context,
             on_render_complete_callback=cls._save_to_sti_b8_set,
             params = (context,),
-            frames=None   # all sequence
-            # frames='1,2'
+            frames=context.scene.sti_maker_props.frames
         )
 
     @classmethod
     def _save_to_sti_b8_set(cls, context, frames_data):
-        # save to .sti RBG565
+        # save to .sti 8bit w56 colors - set of images
         #     frames_data = {
         #         'width': context.scene.render.resolution_x,
         #         'height': context.scene.render.resolution_y,

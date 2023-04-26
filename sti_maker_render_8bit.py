@@ -28,6 +28,7 @@ class STIMakerRender8bSet:
             context=context,
             frames=frames
         )
+        print(cls._frames)
         # add handlers
         cls._add_handlers()
         # callbacks

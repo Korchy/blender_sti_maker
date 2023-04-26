@@ -25,20 +25,19 @@ class STI_MAKER_PT_panel(Panel):
         )
         box = layout.box()
         box.label(text='8 bit Set')
+        box.prop(
+            data=context.scene.sti_maker_props,
+            property='frames'
+        )
         box.operator(
             operator='sti_maker.render_to_sti_8b_set',
             icon='PACKAGE'
         )
-        # layout.prop(
-        #     data=context.scene.sti_maker_props,
-        #     property='format',
-        #     expand=True
-        # )
         box = layout.box()
-        box.label(text='TEST')
+        box.label(text='8 bit Animation')
         box.operator(
-            operator='sti_maker.viewer_node_to_sti',
-            icon='RESTRICT_RENDER_ON'
+            operator='sti_maker.render_to_sti_8b_anim',
+            icon='RENDER_ANIMATION'
         )
 
 
