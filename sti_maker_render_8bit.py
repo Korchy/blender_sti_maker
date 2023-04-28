@@ -28,7 +28,6 @@ class STIMakerRender8bSet:
             context=context,
             frames=frames
         )
-        print(cls._frames)
         # add handlers
         cls._add_handlers()
         # callbacks
@@ -139,7 +138,8 @@ class STIMakerRender8bSet:
                 'height': context.scene.render.resolution_y,
                 'pixels': pixels,
                 'len_rgba': len(pixels),
-                'len_bytes': int(len(pixels) / 4)
+                'len_bytes': int(len(pixels) / 4),
+                'frames_in_new_direction': cls._frames_in_new_direction(context=context)
             }
         )
         # idle for next frame render
@@ -171,3 +171,19 @@ class STIMakerRender8bSet:
         # get data output image (from Compositor Viewer Node)
         return next((image for image in context.blend_data.images
                      if image.name == 'Viewer Node'), None)
+
+    @classmethod
+    def _frames_in_new_direction(cls, context):
+        # count frames in new direction if direction changes
+        #   get information about changes from context.scene.sti_maker_props.change_direction_frames
+        corner_frames = list(map(int, re.findall('\d+', context.scene.sti_maker_props.change_direction_frames)))
+        # [17, 33]  for each 16 frames (16 * range + 1)
+        corner_frames.append(context.scene.frame_start)
+        corner_frames.append(context.scene.frame_end + 1)
+        corner_frames.sort()    # [1, 17, 33, 49]
+        if context.scene.frame_current not in corner_frames:
+            frames_number = 0
+        else:
+            frame_index = corner_frames.index(context.scene.frame_current)
+            frames_number = corner_frames[frame_index + 1] - context.scene.frame_current
+        return frames_number

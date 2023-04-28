@@ -8,6 +8,7 @@ import subprocess
 import sys
 import os
 from PIL import Image
+import tempfile
 import bpy
 import numpy as np
 from .sti_maker_sti import STI16BRGB565, STI8BI, STI8BIA
@@ -21,59 +22,6 @@ class STIMaker:
     _render_recall_interval = 0.25  # sek
     _data = []      # block for summary rendered data [[frame 1 data in rgba], [], ...]
     _frames = []    # list of dicts, each dict - each frame info [{"width": 1, ...}, ...]
-
-    @classmethod
-    def viewer_node_to_sti(cls, context):
-        # save Viewer Node data to .sti
-        # pixels from Viewer Node (RGBA)
-        cls._data = [context.blend_data.images['Viewer Node'].pixels,]
-        cls._frames = [
-            {
-                'width': context.scene.render.resolution_x,
-                'height': context.scene.render.resolution_y,
-                'data_length': int(len(cls._data[0]) / 4)  # rgba -> index to palette
-            }
-        ]
-        # cls._data = [context.blend_data.images['red.png'].pixels,]
-        # pixels_rgba = context.blend_data.images['su.png'].pixels
-        if cls._data:
-            pixels_rgba = cls._data
-            # clamp to 0-1 range
-            #   pixels from Viewer Node comes in dynamic color space, value could be grater 1
-            #   need to clamp range to each color value to 0-1
-            #   now solved with the Convert Colorspace node in compositor (from sRGB to FilmicsRGB)
-
-            # convert to the required STI mode
-            if context.scene.sti_maker_props.format == 'STIRGB565':
-                # always 1 frame
-                pixels_rgba = pixels_rgba[0]
-                # convert data array from RGBA to RGB565
-                pixels_rgb565 = cls._pixels_rgba_rgb565(pixels_rgba=pixels_rgba)
-                # create .sti
-                sti = STI16BRGB565(
-                    pixels_rgb565=pixels_rgb565,
-                    width=context.scene.render.resolution_x,
-                    height=context.scene.render.resolution_y
-                )
-                # save to file
-                sti.save_image(path='d:/', file_name='1')
-            elif context.scene.sti_maker_props.format == 'STI8I':
-                # join all frames to single image
-                pixels_rgba = np.concatenate(np.array(pixels_rgba))
-                # convert to RGB256 and get indices (body) and palette
-                indices, palette = cls._pixels_rgba_rgb256(pixels_rgba=pixels_rgba)
-                # create .sti
-                # print('paleter', palette, len(palette))
-                sti = STI8BI(
-                    indices=indices,
-                    palette=palette,
-                    frames=cls._frames
-                )
-                # save to file
-                sti.save_image(path='d:/', file_name='2')
-            elif context.scene.sti_maker_props.format == 'STI8IA':
-                pass
-            print('STI saved')
 
     @classmethod
     def render_to_sti_8b_animation(cls, context):
@@ -113,7 +61,7 @@ class STIMaker:
             frames=frames_data
         )
         # save to file
-        sti.save_image(path='d:/', file_name='3')
+        sti.save_image(path=cls.output_path(), file_name='8bitAnimation')
 
     @classmethod
     def render_to_sti_8b_set(cls, context):
@@ -153,7 +101,7 @@ class STIMaker:
             frames=frames_data
         )
         # save to file
-        sti.save_image(path='d:/', file_name='2')
+        sti.save_image(path=cls.output_path(), file_name='8bitSet')
 
     @classmethod
     def render_to_sti_rgb565(cls, context):
@@ -184,7 +132,7 @@ class STIMaker:
                 height=context.scene.render.resolution_y
             )
             # save to file
-            sti.save_image(path='d:/', file_name='1')
+            sti.save_image(path=cls.output_path(), file_name='RGB565')
 
     @classmethod
     def _pixels_rgba_rgb256(cls, pixels_rgba: [list, tuple]):
@@ -214,6 +162,20 @@ class STIMaker:
         palette = pillow_image_255.getpalette()
         # get body - indices to palette
         indices = [index for index in pillow_image_255.getdata()]
+        # correct palette and indices - transparent color (0,0,0) must be the first in a palette
+        if palette[:3] != [0, 0, 0]:
+            # find transparent color (0,0,0) in palette
+            transparent = None
+            for i in range(0, len(palette), 3):
+                if palette[i: i + 3] == [0, 0, 0]:
+                    transparent = i
+            # if exists
+            if transparent is not None:
+                transparent_idx = int(transparent / 3)
+                # switch transparent with the first color
+                palette[0:3], palette[transparent:transparent + 3] = palette[transparent:transparent + 3], palette[0:3]
+                # switch all transparent indices with indices for the first color
+                indices[:] = (0 if i == transparent_idx else (transparent_idx if i == 0 else i) for i in indices)
         # return indices (body) and palette
         return indices, palette
 
@@ -291,6 +253,31 @@ class STIMaker:
         # get data output image (from Compositor Viewer Node)
         return next((image for image in context.blend_data.images
                      if image.name == 'Viewer Node'), None)
+
+    @classmethod
+    def output_path(cls) -> str:
+        """ Return path to save STI
+
+        :return: absolute path
+        """
+        path = None
+        if bpy.context.scene.render.filepath:
+            path = cls.abs_path(path=bpy.context.scene.render.filepath)
+        if not path and bpy.data.filepath:
+            path = os.path.dirname(os.path.abspath(bpy.data.filepath))
+        if not path:
+            path = tempfile.gettempdir()
+        if not os.path.exists(path):
+            os.makedirs(path)
+        return path
+
+    @staticmethod
+    def abs_path(path):
+        # returns absolute file path from path
+        if path[:2] == '//':
+            return os.path.abspath(os.path.join(os.path.dirname(os.path.abspath(bpy.data.filepath)), path[2:]))
+        else:
+            return os.path.abspath(path)
 
     @staticmethod
     def install_pillow():

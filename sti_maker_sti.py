@@ -6,8 +6,8 @@
 
 from ctypes import c_uint, c_uint8, c_uint16, c_uint32
 import os
-from .sti_maker_sti_header import STIHeader8bI, STIHeader16bRGB, STI8bIPalette,\
-    STI8bISubImage
+from .sti_maker_sti_struct import STIHeader8bI, STIHeader16bRGB, STI8bIPalette,\
+    STI8bISubImage, STI8bIAuxObjectData
 from .sti_maker_etrle import ETRLE
 
 class STI16BRGB565:
@@ -133,6 +133,7 @@ class STI8BIA:
         )
         # frame headers
         self._frame_headers = []
+        self._frame_aux_datas = []
         self._frame_indices_compressed = []
         compressed_bytes_size = 0
         frame_data_offset = 0
@@ -158,10 +159,17 @@ class STI8BIA:
             self._frame_indices_compressed.append(frame_indices_compressed)
             # offset to next frame
             frame_data_offset += len(frame_indices_compressed)
+            # frame aux data
+            self._frame_aux_datas.append(
+                STI8bIAuxObjectData(
+                    frames_in_direction=frame['frames_in_new_direction']
+                )
+            )
         # main header - last, because it needs information about compressed indices (body)
         self._header = STIHeader8bI(
             byte_size=len(indices),
             compressed_byte_size=compressed_bytes_size,
+            animated=True,
             frames=len(frames)
         )
 
@@ -177,3 +185,5 @@ class STI8BIA:
                 file.write(frame_header)
             for frame_indices in self._frame_indices_compressed:
                 file.write(frame_indices)
+            for frame_aux_data in self._frame_aux_datas:
+                file.write(frame_aux_data)

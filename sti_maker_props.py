@@ -15,6 +15,10 @@ class STI_MAKER_Props(PropertyGroup):
         name='Frames:',
         default=''
     )
+    change_direction_frames: StringProperty(
+        name='Change Direction Frames',
+        default=''
+    )
 
 
 def register():

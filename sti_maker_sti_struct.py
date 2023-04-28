@@ -96,6 +96,35 @@ class STI8bISubImage(Structure):
         self.usWidth = width
 
 
+class STI8bIAuxObjectData(Structure):
+    """
+        8 bit indexed image auxiliary data header
+    """
+
+    _fields_ = (
+        ('ubWallOrientation', c_uint8),         # walls orientation
+        ('ubNumberOfTiles', c_uint8),           # number of tiles
+        ('usTileLocIndex', c_uint16),           # coordinates in tiles
+        ('ubUnused1', c_ubyte * 3),             # unused - 3 bytes
+        ('ubCurrentFrame', c_uint8),            # current frame number
+        ('ubNumberOfFrames', c_uint8),          # number of frames for one direction
+        ('fFlags', c_uint8),                    # flags
+        ('ubUnused', c_ubyte * 6),              # unused - 6 bytes
+    )
+
+    def __init__(self, frames_in_direction: int = 0):
+        super().__init__()
+
+        self.ubWallOrientation = 0              # always 0
+        self.ubNumberOfTiles = 0                # always 0
+        self.usTileLocIndex = 0                 # always 0
+        self.ubUnused1 = (c_ubyte * 3)(*list(bytearray(0 * 3)))     # always 0
+        self.ubCurrentFrame = 0                 # always 0
+        self.ubNumberOfFrames = frames_in_direction     # number of frames for direction for first frame in direction, else 0
+        self.fFlags = 2                         # always 2
+        self.ubUnused = (c_ubyte * 6)(*list(bytearray(0 * 6)))     # always 0
+
+
 class STIHeader16bRGB(Structure):
     """
         16 bit RGB565

@@ -39,6 +39,10 @@ class STI_MAKER_PT_panel(Panel):
             operator='sti_maker.render_to_sti_8b_anim',
             icon='RENDER_ANIMATION'
         )
+        box.prop(
+            data=context.scene.sti_maker_props,
+            property='change_direction_frames'
+        )
 
 
 def register():
