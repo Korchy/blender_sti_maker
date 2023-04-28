@@ -4,7 +4,7 @@
 # GitHub
 #    https://github.com/Korchy/blender_sti_maker
 
-from ctypes import c_uint, c_uint8, c_uint16, c_uint32
+from ctypes import c_uint16
 import os
 from .sti_maker_sti_struct import STIHeader8bI, STIHeader16bRGB, STI8bIPalette,\
     STI8bISubImage, STI8bIAuxObjectData
