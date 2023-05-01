@@ -7,7 +7,6 @@
 import subprocess
 import sys
 import os
-from PIL import Image
 import tempfile
 import bpy
 import numpy as np
@@ -144,6 +143,10 @@ class STIMaker:
         :param pixels_rgba: pixels data array [0-1, ...]
         :return: indices array [0-256, ...], palette [r, g, b, ...]
         """
+        try:
+            from PIL import Image
+        except ImportError:
+            print('Pillow module required to install!')
         # data to numpy.array to increase processing speed
         pixels_0_1 = np.asarray(pixels_rgba)    # [r (0-1), g (0-1), b (0-1), a(0-1), ...]
         # convert from 0-1 to 0-255 in linear color space
