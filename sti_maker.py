@@ -10,6 +10,7 @@ import os
 import tempfile
 import bpy
 import numpy as np
+from .sti_maker_func import real_resolution
 from .sti_maker_sti import STI16BRGB565, STI8BI, STI8BIA
 from .sti_maker_render_rgb565 import STIMakerRenderRGB565
 from .sti_maker_render_8bit import STIMakerRender8bSet
@@ -136,8 +137,8 @@ class STIMaker:
             # create .sti
             sti = STI16BRGB565(
                 pixels_rgb565=pixels_rgb565,
-                width=context.scene.render.resolution_x,
-                height=context.scene.render.resolution_y
+                width=real_resolution(context=context)[0],
+                height=real_resolution(context=context)[1]
             )
             # save to file
             sti.save_image(path=cls.output_path(), file_name='RGB565')

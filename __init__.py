@@ -14,7 +14,7 @@ bl_info = {
     'name': 'STI Maker',
     'category': 'All',
     'author': 'Nikita Akimov',
-    'version': (1, 0, 1),
+    'version': (1, 0, 2),
     'blender': (3, 6, 0),
     'location': '',
     'doc_url': 'https://b3d.interplanety.org/en/',

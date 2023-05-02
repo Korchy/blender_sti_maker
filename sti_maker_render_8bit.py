@@ -7,6 +7,7 @@
 import bpy
 import functools
 import re
+from .sti_maker_func import real_resolution
 
 
 class STIMakerRender8bSet:
@@ -134,8 +135,8 @@ class STIMakerRender8bSet:
         pixels = cls._output_image(context=context).pixels[:]  # in RGBA format
         cls._frames_data.append(
             {
-                'width': context.scene.render.resolution_x,
-                'height': context.scene.render.resolution_y,
+                'width': real_resolution(context=context)[0],
+                'height': real_resolution(context=context)[1],
                 'pixels': pixels,
                 'len_rgba': len(pixels),
                 'len_bytes': int(len(pixels) / 4),
