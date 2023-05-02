@@ -25,6 +25,9 @@ class STIMaker:
     @classmethod
     def render_to_sti_8b_animation(cls, context):
         # render to .sti 8bit animation
+        # check output nodes
+        cls._check_compositor_nodes(context=context)
+        # render
         STIMakerRender8bSet.start(
             context=context,
             on_render_complete_callback=cls._save_to_sti_b8_animation,
@@ -65,6 +68,9 @@ class STIMaker:
     @classmethod
     def render_to_sti_8b_set(cls, context):
         # render to .sti 8bit set
+        # check output nodes
+        cls._check_compositor_nodes(context=context)
+        # render
         STIMakerRender8bSet.start(
             context=context,
             on_render_complete_callback=cls._save_to_sti_b8_set,
@@ -105,6 +111,9 @@ class STIMaker:
     @classmethod
     def render_to_sti_rgb565(cls, context):
         # render to .sti RBG565
+        # check output nodes
+        cls._check_compositor_nodes(context=context)
+        # render
         STIMakerRenderRGB565.start(
             context=context,
             on_complete_callback=cls._save_to_sti_rgb565,
@@ -250,6 +259,46 @@ class STIMaker:
         # get data output Viewer Node from Compositing
         return next((node for node in context.scene.node_tree.nodes
                      if node.type == 'VIEWER' and node.label == 'STI OUTPUT'), None)
+
+    @staticmethod
+    def _check_compositor_nodes(context):
+        # check compositing nodes exists
+        context.scene.use_nodes = True
+        node_tree = context.scene.node_tree
+        output_viewer_node = next((node for node in node_tree.nodes if node.type == 'VIEWER'
+                                   and node.label == 'STI OUTPUT'), None)
+        if output_viewer_node is None:
+            # create output composition nodes for STI
+            # convert colorspace node for removing over-lights
+            convert_colorspace_0 = node_tree.nodes.new('CompositorNodeConvertColorSpace')
+            if hasattr(convert_colorspace_0, 'from_color_space'):
+                convert_colorspace_0.from_color_space = 'sRGB'
+            if hasattr(convert_colorspace_0, 'location'):
+                convert_colorspace_0.location = (200, 265)
+            if hasattr(convert_colorspace_0, 'to_color_space'):
+                convert_colorspace_0.to_color_space = 'Filmic sRGB'
+            # flip node to flip image by Y
+            flip_0 = node_tree.nodes.new('CompositorNodeFlip')
+            if hasattr(flip_0, 'axis'):
+                flip_0.axis = 'Y'
+            if hasattr(flip_0, 'location'):
+                flip_0.location = (--20, 265)
+            # output viewer node
+            viewer_0 = node_tree.nodes.new('CompositorNodeViewer')
+            if hasattr(viewer_0, 'label'):
+                viewer_0.label = 'STI OUTPUT'
+            if hasattr(viewer_0, 'location'):
+                viewer_0.location = (480, 265)
+            if hasattr(viewer_0, 'use_alpha'):
+                viewer_0.use_alpha = True
+            # links
+            node_tree.links.new(convert_colorspace_0.outputs['Image'], viewer_0.inputs['Image'])
+            node_tree.links.new(flip_0.outputs['Image'], convert_colorspace_0.inputs['Image'])
+            output = next((node for node in node_tree.nodes if node.type == 'COMPOSITE'), None)
+            if output:
+                src_link = next((link for link in node_tree.links if link.to_node == output), None)
+                if src_link:
+                    node_tree.links.new(src_link.from_socket, flip_0.inputs['Image'])
 
     @staticmethod
     def _output_image(context):
